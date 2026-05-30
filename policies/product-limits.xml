@@ -9,9 +9,9 @@
       </required-claims>
     </validate-azure-ad-token>
     <rate-limit-by-key calls="${calls}" renewal-period="${renewal}"
-      counter-key="@(context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt()?.Claims.GetValueOrDefault("azp",""))" />
+      counter-key="@(context.Request.Headers.GetValueOrDefault(&quot;Authorization&quot;,&quot;&quot;).AsJwt()?.Claims.GetValueOrDefault(&quot;azp&quot;,&quot;&quot;))" />
     <llm-token-limit tokens-per-minute="${tpm}" estimate-prompt-tokens="false"
-      counter-key="@(context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt()?.Claims.GetValueOrDefault("azp",""))" />
+      counter-key="@(context.Request.Headers.GetValueOrDefault(&quot;Authorization&quot;,&quot;&quot;).AsJwt()?.Claims.GetValueOrDefault(&quot;azp&quot;,&quot;&quot;))" />
   </inbound>
   <backend><base /></backend>
   <outbound><base /></outbound>

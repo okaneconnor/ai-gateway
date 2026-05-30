@@ -59,6 +59,14 @@ resource "azurerm_api_management_api_policy" "foundry" {
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = azurerm_resource_group.rg.name
   xml_content         = file("${path.module}/policies/api-foundry.xml")
+
+  depends_on = [
+    azurerm_api_management_policy_fragment.ip_allow,
+    azurerm_api_management_policy_fragment.entra_jwt,
+    azurerm_api_management_policy_fragment.backend_mi,
+    azurerm_api_management_policy_fragment.content_safety,
+    azurerm_api_management_policy_fragment.token_metric,
+  ]
 }
 
 locals {
@@ -90,4 +98,10 @@ resource "azurerm_api_management_api_policy" "svc" {
   xml_content = templatefile("${path.module}/policies/api-aiservice.xml", {
     backend_id = each.value.backend
   })
+
+  depends_on = [
+    azurerm_api_management_policy_fragment.ip_allow,
+    azurerm_api_management_policy_fragment.entra_jwt,
+    azurerm_api_management_policy_fragment.backend_mi,
+  ]
 }

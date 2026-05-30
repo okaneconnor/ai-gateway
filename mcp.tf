@@ -37,4 +37,9 @@ resource "azurerm_api_management_api_policy" "mcp" {
       <on-error><base /></on-error>
     </policies>
   XML
+
+  depends_on = [
+    azurerm_api_management_policy_fragment.ip_allow,
+    azurerm_api_management_policy_fragment.entra_jwt,
+  ]
 }

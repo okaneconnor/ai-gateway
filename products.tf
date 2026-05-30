@@ -25,6 +25,13 @@ resource "azurerm_api_management_product_api" "pa" {
   api_name            = each.value.api
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = azurerm_resource_group.rg.name
+
+  # Link only after the APIs are fully configured (incl. their policies), to avoid
+  # APIM eventual-consistency 400s when associating a not-yet-ready API to a product.
+  depends_on = [
+    azurerm_api_management_api_policy.foundry,
+    azurerm_api_management_api_policy.svc,
+  ]
 }
 
 resource "azurerm_api_management_product_policy" "tier" {
