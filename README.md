@@ -1,10 +1,10 @@
 # APIM AI Gateway — Sandbox
 
-An Azure API Management (Developer tier) AI Gateway, built as flat Terraform (no modules) in a single subscription. It gives developer teams a **governed front door** to in-house AI: central managed-identity auth, token quotas, semantic caching, prompt safety, MCP governance, and an agent/API catalog — each applied one phase at a time via `enable_*` variable toggles.
+An Azure API Management (Developer tier) AI Gateway, built as flat Terraform (no modules) in a single subscription. It gives developer teams a **governed front door** to in-house AI: central managed-identity auth, token quotas, semantic caching, prompt safety, MCP governance, and an agent/API catalog. All capabilities are provisioned together by a single `terraform apply` (this sandbox mirrors a production deployment) — there are no enable/disable toggles.
 
 **Architecture diagram:** [View on Excalidraw](https://excalidraw.com/#json=bbH-Z8I4Tv6xxYNUCXyPT,AE-7r1A3yYIl4mTrjqvWFQ)
 
-The diagram shows client dev-team apps (Team Alpha / Team Beta) calling APIM via per-team subscription keys, the full inbound/outbound policy chain, and the backends: Azure OpenAI (gpt-4o + text-embedding-3-small), Azure AI Content Safety, Azure Managed Redis, governed MCP server, and Azure API Center + Developer Portal. Telemetry flows to Application Insights and Log Analytics. Phase-gated elements are colour-coded.
+The diagram shows client dev-team apps (Team Alpha / Team Beta) calling APIM via per-team subscription keys, the full inbound/outbound policy chain, and the backends: Azure OpenAI (gpt-4o + text-embedding-3-small), Azure AI Content Safety, Azure Managed Redis, governed MCP server, and Azure API Center + Developer Portal. Telemetry flows to Application Insights and Log Analytics.
 
 ---
 
@@ -27,50 +27,46 @@ az provider register --namespace Microsoft.ApiCenter
 
 ---
 
-## Phase table
+## Capabilities
 
-Each phase is one `terraform apply`. Flip **one** toggle to `true`, apply, pass the validation gate, then move to the next phase.
+A single `terraform apply` provisions **all** of the following. Use the `test/` scripts to validate each capability after apply.
 
-| Phase | Toggle | Capability | Resources / policies added | Validation gate |
-|---|---|---|---|---|
-| **1 Foundation** | _(all false)_ | Model governance baseline + observability | RG, Log Analytics, App Insights, APIM Developer_1, AOAI (gpt-4o + text-embedding-3-small), system-assigned MI + RBAC, LLM API, per-team Products + Subscriptions | `test/01-chat.sh` — chat completion succeeds; request visible in App Insights |
-| **2 Cost & fairness** | `enable_token_governance` | Token limits, metrics, resiliency | `llm-token-limit` (TPM + monthly quota), `llm-emit-token-metric`, circuit breaker on AOAI backend, retry policy | `test/02-token-limit.sh` — rapid requests return HTTP 429; `llm-metrics` visible in App Insights |
-| **3 Semantic caching** | `enable_semantic_cache` | Performance / cost | Azure Managed Redis (Balanced_B3, RediSearch), APIM external cache, `llm-semantic-cache-lookup` + `llm-semantic-cache-store` | `test/03-cache.sh` — second identical prompt is faster; fewer backend tokens in App Insights |
-| **4 Safety** | `enable_content_safety` | Prompt moderation | Azure AI Content Safety account + backend + MI RBAC, `llm-content-safety` policy | `test/04-content-safety.sh` — benign prompt passes (200); harmful prompt blocked (403) |
-| **5 MCP governance** | `enable_mcp` | MCP server governance | Governed external MCP server via `azapi` (ARM `2025-09-01-preview`), `mcp-governance.xml` (rate-limit + ip-filter) | `test/05-mcp.sh` — add MCP endpoint in VS Code agent mode; list and invoke a tool |
-| **6 Agents + self-service** | `enable_agents_selfservice` | Agents + org catalog | Azure API Center service (stable ARM `2024-03-01`). A2A agent API: **manual portal step** (see Known Limitations) | API Center service exists; A2A agent registered via portal; team discovers + subscribes via Developer Portal |
+| Capability | Resources / policies | Validate with |
+|---|---|---|
+| **Foundation + observability** | RG, Log Analytics, App Insights, APIM Developer_1, AOAI (gpt-4o + text-embedding-3-small), system-assigned MI + RBAC, LLM API, per-team Products + Subscriptions | `test/01-chat.sh` — chat completion succeeds; request visible in App Insights |
+| **Cost & fairness** | `llm-token-limit` (TPM + monthly quota), `llm-emit-token-metric`, circuit breaker on AOAI backend, retry policy | `test/02-token-limit.sh` — rapid requests return HTTP 429; `llm-metrics` visible in App Insights |
+| **Semantic caching** | Azure Managed Redis (Balanced_B3, RediSearch), APIM external cache, `llm-semantic-cache-lookup` + `llm-semantic-cache-store` | `test/03-cache.sh` — second identical prompt is faster; fewer backend tokens |
+| **Prompt safety** | Azure AI Content Safety account + backend + MI RBAC, `llm-content-safety` policy | `test/04-content-safety.sh` — benign prompt passes (200); harmful prompt blocked (403) |
+| **MCP governance** | Governed external MCP server via `azapi` (ARM `2025-09-01-preview`), `mcp-governance.xml` (rate-limit + ip-filter) | `test/05-mcp.sh` — add MCP endpoint in VS Code agent mode; list and invoke a tool |
+| **Agents + self-service** | Azure API Center service (stable ARM `2024-03-01`); Developer Portal. A2A agent API: **manual portal step** (see Known Limitations) | API Center service exists; team discovers + subscribes via Developer Portal |
+
+The LLM capabilities are composed into one always-on API policy (`policies/llm-gateway.xml`): managed-identity auth → content safety → token limit → token metrics → semantic-cache lookup, with retry on the backend and semantic-cache store on the outbound.
 
 ---
 
-## Phased apply runbook
+## Apply runbook
 
-### Initial setup
+### Setup
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars: set publisher_email to your address.
 # Optionally change location (default: uksouth) — verify gpt-4o GlobalStandard
 # quota is available in your chosen region before applying.
+# Optionally set existing_mcp_server_url to the MCP server you want to govern.
 
 terraform init
 ```
 
-### Phase 1 — Foundation (all toggles false)
+### Apply (provisions everything)
 
 ```bash
 terraform apply
 ```
 
-> APIM Developer tier provisioning takes **30–45 minutes**. Wait until `terraform apply` completes before running tests.
+> APIM Developer tier provisioning takes **30–45 minutes** and Azure Managed Redis **~10–15 minutes**; a clean apply is dominated by these. Wait until apply completes before running tests.
 
-Retrieve outputs:
-
-```bash
-terraform output apim_gateway_url
-terraform output -json team_subscription_keys
-```
-
-Set environment variables for test scripts:
+### Retrieve outputs and set test env vars
 
 ```bash
 export GATEWAY_URL=$(terraform output -raw apim_gateway_url)
@@ -78,88 +74,25 @@ export SUB_KEY=$(terraform output -json team_subscription_keys | jq -r '.["team-
 export DEPLOYMENT=$(terraform output -raw chat_deployment_name)   # gpt-4o
 ```
 
-Validate:
+### Validate each capability
 
 ```bash
-chmod +x test/01-chat.sh
-./test/01-chat.sh
-# Expect: chat completion JSON. Confirm the request appears in Application Insights.
+chmod +x test/*.sh
+./test/01-chat.sh              # chat completion JSON; request appears in App Insights
+./test/02-token-limit.sh      # eventually HTTP 429; llm-metrics in App Insights
+./test/03-cache.sh            # second identical prompt is faster; fewer backend tokens
+./test/04-content-safety.sh   # benign -> 200; harmful -> 403
+./test/05-mcp.sh              # prints MCP endpoint + key header to add in VS Code agent mode
 ```
 
-### Phase 2 — Token governance
+### Developer Portal + A2A agent (manual)
 
-In `terraform.tfvars`, set:
-
-```hcl
-enable_token_governance = true
-```
-
-```bash
-terraform apply
-./test/02-token-limit.sh
-# Expect: eventually an HTTP 429. Check llm-metrics in App Insights.
-```
-
-### Phase 3 — Semantic caching
-
-In `terraform.tfvars`, set:
-
-```hcl
-enable_semantic_cache = true
-```
-
-```bash
-terraform apply
-# Azure Managed Redis provisioning takes ~10–15 minutes.
-./test/03-cache.sh
-# Expect: second request is faster. Confirm reduced backend tokens in App Insights.
-```
-
-### Phase 4 — Content safety
-
-In `terraform.tfvars`, set:
-
-```hcl
-enable_content_safety = true
-```
-
-```bash
-terraform apply
-./test/04-content-safety.sh
-# Expect: benign prompt -> HTTP 200; harmful prompt -> HTTP 403.
-```
-
-### Phase 5 — MCP governance
-
-Set `existing_mcp_server_url` in `terraform.tfvars` if you want to govern a different MCP server (default: `https://learn.microsoft.com/api/mcp`). Then:
-
-```hcl
-enable_mcp = true
-```
-
-```bash
-terraform apply
-./test/05-mcp.sh
-# Prints the MCP endpoint URL and subscription key header.
-# Add the server in VS Code: MCP: Add Server -> HTTP -> paste URL + header.
-# In Copilot agent mode, list tools and invoke one.
-```
-
-### Phase 6 — Agents + self-service
-
-```hcl
-enable_agents_selfservice = true
-```
-
-```bash
-terraform apply
-# Creates Azure API Center. A2A agent API requires a manual portal step — see Known Limitations.
-```
-
-To publish the Developer Portal (ships with Developer tier; no Terraform resource needed):
+The Developer Portal ships with the Developer tier (no Terraform resource):
 
 1. Azure portal → your APIM instance → **Developer portal** → **Publish**.
-2. Share the portal URL with teams so they can discover and subscribe to products.
+2. Share the portal URL so teams can discover and subscribe to products.
+
+The A2A agent API has no ARM/azapi shape yet, so register it manually (see Known Limitations): APIM → **APIs → + Add API → A2A Agent**. It then auto-syncs into the API Center catalog.
 
 ---
 
@@ -170,7 +103,7 @@ APIM's system-assigned managed identity receives the following role assignments 
 | Identity | Role | Scope |
 |---|---|---|
 | APIM system-assigned MI | **Cognitive Services OpenAI User** | Azure OpenAI account |
-| APIM system-assigned MI | **Cognitive Services User** | Azure AI Content Safety account (Phase 4) |
+| APIM system-assigned MI | **Cognitive Services User** | Azure AI Content Safety account |
 
 This is what allows APIM policy to call `authentication-managed-identity` against the AOAI and Content Safety backends without storing any credentials.
 

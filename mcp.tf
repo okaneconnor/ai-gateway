@@ -37,7 +37,6 @@
 # =============================================================================
 
 resource "azapi_resource" "existing_mcp" {
-  count     = var.enable_mcp ? 1 : 0
   type      = "Microsoft.ApiManagement/service/apis@2025-09-01-preview"
   name      = "governed-mcp"
   parent_id = azurerm_api_management.apim.id
@@ -84,8 +83,7 @@ resource "azapi_resource" "existing_mcp" {
 # is safe.
 # -----------------------------------------------------------------------------
 resource "azurerm_api_management_api_policy" "mcp" {
-  count               = var.enable_mcp ? 1 : 0
-  api_name            = azapi_resource.existing_mcp[0].name
+  api_name            = azapi_resource.existing_mcp.name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -102,8 +100,6 @@ resource "azurerm_api_management_api_policy" "mcp" {
 # PUT against the same type/version, e.g.:
 #
 # resource "null_resource" "existing_mcp_fallback" {
-#   count = var.enable_mcp ? 1 : 0
-#
 #   triggers = {
 #     mcp_url = var.existing_mcp_server_url
 #     apim_id = azurerm_api_management.apim.id

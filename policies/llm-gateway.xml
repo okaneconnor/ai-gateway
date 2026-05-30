@@ -6,12 +6,22 @@
     <set-header name="Authorization" exists-action="override">
       <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
     </set-header>
-    <llm-token-limit counter-key="@(context.Subscription.Id)" tokens-per-minute="${tpm}" token-quota="${quota}" token-quota-period="Monthly" estimate-prompt-tokens="false" remaining-tokens-variable-name="remainingTokens" remaining-quota-tokens-variable-name="remainingQuotaTokens" />
+    <llm-content-safety backend-id="${cs_backend_id}" shield-prompt="true">
+      <categories output-type="EightSeverityLevels">
+        <category name="Hate" threshold="4" />
+        <category name="Violence" threshold="4" />
+        <category name="SelfHarm" threshold="4" />
+        <category name="Sexual" threshold="4" />
+      </categories>
+    </llm-content-safety>
+    <llm-token-limit counter-key="@(context.Subscription.Id)" tokens-per-minute="${tpm}" token-quota="${quota}" token-quota-period="Monthly" estimate-prompt-tokens="false" />
     <llm-emit-token-metric namespace="llm-metrics">
       <dimension name="Subscription ID" />
       <dimension name="API ID" />
-      <dimension name="Client IP" value="@(context.Request.IpAddress)" />
     </llm-emit-token-metric>
+    <llm-semantic-cache-lookup score-threshold="0.05" embeddings-backend-id="${embeddings_backend_id}" embeddings-backend-auth="system-assigned" ignore-system-messages="true" max-message-count="10">
+      <vary-by>@(context.Subscription.Id)</vary-by>
+    </llm-semantic-cache-lookup>
   </inbound>
   <backend>
     <retry condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode >= 500)" count="3" interval="2" max-interval="20" delta="2" first-fast-retry="false">
@@ -20,6 +30,7 @@
   </backend>
   <outbound>
     <base />
+    <llm-semantic-cache-store duration="120" />
   </outbound>
   <on-error>
     <base />

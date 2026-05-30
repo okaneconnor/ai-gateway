@@ -16,14 +16,7 @@ locals {
   redis_name = "${var.name_prefix}-redis-${local.suffix}"
   apic_name  = "${var.name_prefix}-apic-${local.suffix}"
 
-  # Default per-API governance limits for the sandbox (per-team overrides live on product policies).
+  # Per-API governance limits for the sandbox.
   default_tpm   = 2000
   default_quota = 2000000
-
-  openai_api_policy_file = (
-    var.enable_content_safety ? "${path.module}/policies/llm-content-safety.xml" :
-    var.enable_semantic_cache ? "${path.module}/policies/llm-semantic-cache.xml" :
-    var.enable_token_governance ? "${path.module}/policies/llm-governance.xml" :
-    "${path.module}/policies/llm-foundation.xml"
-  )
 }

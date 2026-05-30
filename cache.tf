@@ -1,4 +1,4 @@
-# Phase 3: Redis semantic cache + APIM external cache wiring.
+# Redis semantic cache + APIM external cache wiring.
 #
 # Schema notes (verified against hashicorp/azurerm latest, 2026-05-30):
 #   azurerm_redis_enterprise_cluster / azurerm_redis_enterprise_database are DEPRECATED in
@@ -6,18 +6,16 @@
 #   azurerm_managed_redis accordingly.
 #
 #   Confirmed attribute names used below:
-#     - hostname            : azurerm_managed_redis.<name>.hostname
-#     - primary_access_key  : azurerm_managed_redis.<name>.default_database[0].primary_access_key
-#     - port                : azurerm_managed_redis.<name>.default_database[0].port
-#       (The port is set at create time and read back from the exported
-#        default_database[0].port attribute; Enterprise / Managed Redis listens on
-#        port 10000 by default, but we read the attribute rather than hard-coding it.)
+#     - hostname            : azurerm_managed_redis.semantic.hostname
+#     - primary_access_key  : azurerm_managed_redis.semantic.default_database[0].primary_access_key
+#     - port                : azurerm_managed_redis.semantic.default_database[0].port
+#       (set at create time and read back from the exported attribute; Managed Redis
+#        listens on 10000 by default, but we read the attribute rather than hard-coding it.)
 #     - RediSearch module   : enabled via module { name = "RediSearch" } inside default_database
 #     - client_protocol     : "Encrypted" (TLS — required for semantic/vector cache in APIM)
 #     - clustering_policy   : "EnterpriseCluster" (required when using RediSearch with APIM)
 
 resource "azurerm_managed_redis" "semantic" {
-  count               = var.enable_semantic_cache ? 1 : 0
   name                = local.redis_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
@@ -37,15 +35,12 @@ resource "azurerm_managed_redis" "semantic" {
 }
 
 resource "azurerm_api_management_redis_cache" "semantic" {
-  count             = var.enable_semantic_cache ? 1 : 0
   name              = "semantic-cache"
   api_management_id = azurerm_api_management.apim.id
 
   # connection_string format: <hostname>:<port>,password=<key>,ssl=True,abortConnect=False
-  # Confirmed attributes: hostname (cluster-level), default_database[0].port,
-  # default_database[0].primary_access_key (requires access_keys_authentication_enabled = true).
-  connection_string = "${azurerm_managed_redis.semantic[0].hostname}:${azurerm_managed_redis.semantic[0].default_database[0].port},password=${azurerm_managed_redis.semantic[0].default_database[0].primary_access_key},ssl=True,abortConnect=False"
+  connection_string = "${azurerm_managed_redis.semantic.hostname}:${azurerm_managed_redis.semantic.default_database[0].port},password=${azurerm_managed_redis.semantic.default_database[0].primary_access_key},ssl=True,abortConnect=False"
 
-  redis_cache_id = azurerm_managed_redis.semantic[0].id
+  redis_cache_id = azurerm_managed_redis.semantic.id
   cache_location = "default"
 }

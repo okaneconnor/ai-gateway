@@ -67,40 +67,8 @@ variable "embedding_model" {
   }
 }
 
-# --- Phase toggles (apply capabilities one at a time) ---
-
-variable "enable_token_governance" {
-  description = "Phase 2: token-limit + emit-token-metric + retry + circuit breaker."
-  type        = bool
-  default     = false
-}
-
-variable "enable_semantic_cache" {
-  description = "Phase 3: Azure Managed Redis external cache + semantic cache policies."
-  type        = bool
-  default     = false
-}
-
-variable "enable_content_safety" {
-  description = "Phase 4: Azure AI Content Safety account + llm-content-safety policy."
-  type        = bool
-  default     = false
-}
-
-variable "enable_mcp" {
-  description = "Phase 5: MCP server (REST->MCP) + governed external MCP server (azapi)."
-  type        = bool
-  default     = false
-}
-
-variable "enable_agents_selfservice" {
-  description = "Phase 6: A2A agent API + API Center catalog (azapi)."
-  type        = bool
-  default     = false
-}
-
 variable "existing_mcp_server_url" {
-  description = "Phase 5: base URL of an existing remote MCP server to govern (e.g. https://learn.microsoft.com/api/mcp)."
+  description = "Base URL of an existing remote MCP server to govern through the gateway."
   type        = string
   default     = "https://learn.microsoft.com/api/mcp"
 }

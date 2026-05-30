@@ -1,7 +1,7 @@
 # Phase 6: Agents + self-service (azapi)
 #
 # Azure API Center and A2A agent APIs have NO azurerm resources, so this file
-# uses the azapi provider. Each resource is gated by var.enable_agents_selfservice.
+# uses the azapi provider. API Center is always provisioned.
 #
 # The APIM Developer Portal ships with the Developer tier and needs no resource to
 # "enable" — publish it via the portal "Publish" action or the APIM REST API.
@@ -13,7 +13,6 @@
 # instance synchronize automatically to API Center once the agent API exists.
 # https://learn.microsoft.com/azure/api-center/agent-to-agent-overview
 resource "azapi_resource" "api_center" {
-  count     = var.enable_agents_selfservice ? 1 : 0
   type      = "Microsoft.ApiCenter/services@2024-03-01"
   name      = local.apic_name
   parent_id = azurerm_resource_group.rg.id
@@ -54,7 +53,7 @@ resource "azapi_resource" "api_center" {
 # so a CLI fallback would be equally invented.
 #
 # TODO (manual, until an ARM/azapi shape exists):
-#   With var.enable_agents_selfservice = true, after `terraform apply`:
+#   After `terraform apply`:
 #     a. Azure portal -> your APIM instance -> APIs -> + Add API -> "A2A Agent" tile.
 #     b. Enter the agent-card URL (JSON document), then Runtime URL + Agent ID.
 #     c. Set Display name and Base path; enable "Subscription required" if desired.
@@ -64,6 +63,6 @@ resource "azapi_resource" "api_center" {
 
 # --- API Center output (Task 6 Step 2; lives here, not in core-owned outputs.tf) ---
 output "api_center_name" {
-  description = "API Center service name (when agents + self-service is enabled)."
-  value       = var.enable_agents_selfservice ? local.apic_name : null
+  description = "API Center service name."
+  value       = azapi_resource.api_center.name
 }
