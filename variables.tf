@@ -49,9 +49,11 @@ variable "chat_model" {
     sku_name = string
     capacity = number
   })
+  # 2024-11-20 is the current GA gpt-4o (the 2024-08-06 version is deprecating);
+  # confirmed deployable as Standard/GlobalStandard in this account via list-models.
   default = {
     name     = "gpt-4o"
-    version  = "2024-08-06"
+    version  = "2024-11-20"
     sku_name = "GlobalStandard"
     capacity = 30
   }
@@ -65,10 +67,11 @@ variable "embedding_model" {
     sku_name = string
     capacity = number
   })
+  # text-embedding-3-small is GlobalStandard-only in uksouth (Standard is unsupported there).
   default = {
     name     = "text-embedding-3-small"
     version  = "1"
-    sku_name = "Standard"
+    sku_name = "GlobalStandard"
     capacity = 10
   }
 }

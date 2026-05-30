@@ -13,7 +13,6 @@ resource "azurerm_api_management_backend" "content_safety" {
   resource_group_name = azurerm_resource_group.rg.name
   protocol            = "http"
   url                 = trimsuffix(azurerm_cognitive_account.content_safety.endpoint, "/")
-  resource_id         = azurerm_cognitive_account.content_safety.id
 
   tls {
     validate_certificate_chain = true

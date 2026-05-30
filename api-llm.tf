@@ -20,7 +20,6 @@ resource "azurerm_api_management_backend" "aoai" {
   resource_group_name = azurerm_resource_group.rg.name
   protocol            = "http"
   url                 = "${azurerm_cognitive_account.aoai.endpoint}openai"
-  resource_id         = azurerm_cognitive_account.aoai.id
 
   tls {
     validate_certificate_chain = true
@@ -55,7 +54,6 @@ resource "azurerm_api_management_backend" "embeddings" {
   resource_group_name = azurerm_resource_group.rg.name
   protocol            = "http"
   url                 = "${azurerm_cognitive_account.aoai.endpoint}openai/deployments/${azurerm_cognitive_deployment.embeddings.name}"
-  resource_id         = azurerm_cognitive_account.aoai.id
 
   tls {
     validate_certificate_chain = true
