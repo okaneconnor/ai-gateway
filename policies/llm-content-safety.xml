@@ -21,7 +21,9 @@
     </llm-emit-token-metric>
   </inbound>
   <backend>
-    <base />
+    <retry condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode >= 500)" count="3" interval="2" max-interval="20" delta="2" first-fast-retry="false">
+      <forward-request buffer-request-body="true" />
+    </retry>
   </backend>
   <outbound>
     <base />

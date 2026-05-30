@@ -16,9 +16,6 @@ locals {
   redis_name = "${var.name_prefix}-redis-${local.suffix}"
   apic_name  = "${var.name_prefix}-apic-${local.suffix}"
 
-  # Managed identity audience for Azure AI / OpenAI backends.
-  cognitive_resource_audience = "https://cognitiveservices.azure.com"
-
   # Default per-API governance limits for the sandbox (per-team overrides live on product policies).
   default_tpm   = 2000
   default_quota = 2000000

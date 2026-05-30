@@ -10,5 +10,6 @@ output "team_subscription_keys" {
 }
 
 output "chat_deployment_name" {
-  value = azurerm_cognitive_deployment.chat.name
+  description = "Name of the chat model deployment used in OpenAI API paths."
+  value       = azurerm_cognitive_deployment.chat.name
 }

@@ -8,9 +8,10 @@
 #   Confirmed attribute names used below:
 #     - hostname            : azurerm_managed_redis.<name>.hostname
 #     - primary_access_key  : azurerm_managed_redis.<name>.default_database[0].primary_access_key
-#     - port (dynamic)      : azurerm_managed_redis.<name>.default_database[0].port
-#       (Enterprise / Managed Redis listens on port 10000 by default; referencing the
-#        exported port attribute rather than hard-coding 10000 ensures accuracy.)
+#     - port                : azurerm_managed_redis.<name>.default_database[0].port
+#       (The port is set at create time and read back from the exported
+#        default_database[0].port attribute; Enterprise / Managed Redis listens on
+#        port 10000 by default, but we read the attribute rather than hard-coding it.)
 #     - RediSearch module   : enabled via module { name = "RediSearch" } inside default_database
 #     - client_protocol     : "Encrypted" (TLS — required for semantic/vector cache in APIM)
 #     - clustering_policy   : "EnterpriseCluster" (required when using RediSearch with APIM)

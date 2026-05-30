@@ -28,5 +28,14 @@ resource "azurerm_api_management_subscription" "team" {
   resource_group_name = azurerm_resource_group.rg.name
   product_id          = azurerm_api_management_product.team[each.key].id
   state               = "active"
-  allow_tracing       = true
+  allow_tracing       = false
+}
+
+resource "azurerm_api_management_product_api" "team_mcp" {
+  for_each = var.enable_mcp ? var.teams : {}
+
+  product_id          = azurerm_api_management_product.team[each.key].product_id
+  api_name            = azapi_resource.existing_mcp[0].name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
 }

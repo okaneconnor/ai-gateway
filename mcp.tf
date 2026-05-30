@@ -51,7 +51,6 @@ resource "azapi_resource" "existing_mcp" {
 
       # MCP API type (confirmed enum value in 2025-xx preview ARM schema).
       apiType = "mcp"
-      type    = "mcp"
 
       protocols = ["https"]
 
