@@ -27,6 +27,8 @@ resource "azurerm_managed_redis" "semantic" {
     access_keys_authentication_enabled = true
     client_protocol                    = "Encrypted"
     clustering_policy                  = "EnterpriseCluster"
+    # RediSearch requires NoEviction (the default VolatileLRU is rejected with modules enabled).
+    eviction_policy = "NoEviction"
 
     module {
       name = "RediSearch"
