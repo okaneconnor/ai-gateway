@@ -66,7 +66,7 @@ terraform apply -var subscription_id=<sub-id>   # APIM VNet provisioning takes ~
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | terraform | >= 1.9.0 |
 | azapi | ~> 2.0 |
 | azuread | ~> 3.0 |
@@ -76,7 +76,7 @@ terraform apply -var subscription_id=<sub-id>   # APIM VNet provisioning takes ~
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | azapi | ~> 2.0 |
 | azuread | ~> 3.0 |
 | azurerm | ~> 4.74 |
@@ -89,7 +89,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [azapi_resource.api_center](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) | resource |
 | [azapi_resource.apic_apim_source](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) | resource |
 | [azapi_resource.apim_azuremonitor_logger](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) | resource |
@@ -158,7 +158,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | location | Azure region for all resources. Choose a region where your chat + embeddings models are available with the deployment SKUs you allow (see deployment\_sku\_policy). | `string` | n/a | yes |
 | publisher\_email | APIM publisher email. | `string` | n/a | yes |
 | publisher\_name | APIM publisher name (shown in the developer portal). | `string` | n/a | yes |
@@ -198,7 +198,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | api\_center\_id | API Center service resource ID (null when enable\_api\_center = false). |
 | api\_center\_name | API Center service name (null when enable\_api\_center = false). |
 | apim\_gateway\_url | APIM gateway base URL. |
