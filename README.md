@@ -53,6 +53,79 @@ terraform apply -var subscription_id=<sub-id>   # APIM VNet provisioning takes ~
 > Terraform >= 1.9. You need Entra permissions to create app registrations (or use
 > `existing_gateway_app`).
 
+### Complete example
+
+A fuller configuration exercising the common knobs. Every argument below is optional
+with a sensible default — set only what you need to override. See the
+[Inputs](#inputs) reference for the full list (including bring-your-own / landing-zone
+inputs such as `existing_network`, `existing_resource_group_name`, and
+`existing_private_dns_zone_ids`).
+
+```hcl
+module "ai_gateway" {
+  source = "github.com/okaneconnor/ai-gateway"
+
+  location        = var.location
+  name_prefix     = var.name_prefix
+  publisher_name  = var.publisher_name
+  publisher_email = var.publisher_email
+  tags            = var.tags
+
+  # API Management
+  apim_sku_name             = var.apim_sku_name
+  apim_virtual_network_type = var.apim_virtual_network_type
+  apim_diagnostic = {
+    sampling_percentage = var.apim_sampling_percentage
+  }
+  allowed_client_cidrs = var.allowed_client_cidrs
+
+  # Models
+  foundry_account_sku = var.foundry_account_sku
+  model_deployments   = var.model_deployments
+
+  # Tiers
+  tiers = var.tiers
+
+  # AI gateway policies
+  semantic_cache = {
+    enabled           = var.semantic_cache_enabled
+    redis_sku_name    = var.redis_sku_name
+    high_availability = var.redis_high_availability
+    score_threshold   = var.semantic_cache_score_threshold
+    duration_seconds  = var.semantic_cache_duration_seconds
+  }
+
+  content_safety = {
+    enabled            = var.content_safety_enabled
+    category_threshold = var.content_safety_category_threshold
+  }
+
+  circuit_breaker = {
+    trip_on_429 = var.circuit_breaker_trip_on_429
+  }
+
+  deployment_sku_policy = {
+    allowed_sku_names = var.allowed_deployment_skus
+  }
+
+  # Key Vault
+  key_vault = {
+    enabled                    = var.key_vault_enabled
+    sku_name                   = var.key_vault_sku_name
+    soft_delete_retention_days = var.key_vault_soft_delete_retention_days
+  }
+
+  # Observability
+  log_analytics_sku  = var.log_analytics_sku
+  log_retention_days = var.log_retention_days
+
+  # Toggles
+  enable_api_center   = var.enable_api_center
+  enable_workbook     = var.enable_workbook
+  create_demo_clients = var.create_demo_clients
+}
+```
+
 ## Documentation
 
 | Page | Contents |
@@ -60,7 +133,6 @@ terraform apply -var subscription_id=<sub-id>   # APIM VNet provisioning takes ~
 | [docs/architecture.md](docs/architecture.md) | Architecture diagram, keyless/tiering model, policy chain, data residency, resilience & caching |
 | [docs/usage.md](docs/usage.md) | Deploy, bring-your-own / landing-zone adoption, get a token, onboard a team, live tests |
 | [docs/operations.md](docs/operations.md) | Deployment gotchas, MCP (preview), A2A agents, production hardening, cost, linting & scanning |
-| [docs/troubleshooting/](docs/troubleshooting) | Known issues and fixes |
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

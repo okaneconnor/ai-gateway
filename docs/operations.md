@@ -19,8 +19,7 @@ rationale see [architecture.md](architecture.md).
   use `-parallelism=1`.
 - **Semantic-cache "No appropriate cache found"**: the APIM external cache must be
   registered for the gateway's region display name; the module derives this from
-  `var.location` automatically. See
-  [troubleshooting](troubleshooting/2026-06-02-semantic-cache-no-appropriate-cache.md).
+  `var.location` automatically.
 
 ## MCP governance (preview — off by default)
 
