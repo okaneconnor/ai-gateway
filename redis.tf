@@ -10,7 +10,7 @@ resource "azurerm_managed_redis" "cache" {
   tags                = var.tags
 
   high_availability_enabled = var.semantic_cache.high_availability
-  public_network_access = "Disabled"
+  public_network_access     = "Disabled"
 
   default_database {
     clustering_policy                  = "EnterpriseCluster"
@@ -28,7 +28,7 @@ resource "azurerm_api_management_redis_cache" "cache" {
   name              = "${var.name_prefix}-semantic-cache"
   api_management_id = azurerm_api_management.apim.id
   description       = "Semantic cache for LLM responses (RediSearch)."
-  cache_location = data.azurerm_location.current.display_name
+  cache_location    = data.azurerm_location.current.display_name
   connection_string = format(
     "%s:%d,password=%s,ssl=True,abortConnect=False",
     azurerm_managed_redis.cache["this"].hostname,
