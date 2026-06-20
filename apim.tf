@@ -37,11 +37,6 @@ resource "azurerm_api_management_logger" "appinsights" {
   }
 }
 
-# GOTCHA: emit-metric / llm-emit-token-metric policies only emit when the App
-# Insights diagnostic has metrics=true (the portal's "Enable custom metrics"
-# toggle). azurerm doesn't expose that property (verified against 4.77), so patch
-# it via azapi — without this, token metrics (per-app chargeback) silently never
-# reach customMetrics while everything else looks healthy.
 resource "azapi_update_resource" "appinsights_custom_metrics" {
   type        = "Microsoft.ApiManagement/service/diagnostics@2024-06-01-preview"
   resource_id = azurerm_api_management_diagnostic.apim.id

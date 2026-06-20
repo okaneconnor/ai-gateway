@@ -1,8 +1,4 @@
 locals {
-  # Key the for_each off var.ai_services (always known) rather than
-  # keys(azurerm_api_management_api.svc) — the latter is a resource attribute that's
-  # unknown until apply, which breaks `terraform import` and targeted plans. The keys
-  # are identical (one svc API per ai_services entry), so resource addresses are unchanged.
   svc_wildcard_ops = {
     for pair in setproduct(keys(var.ai_services), ["GET", "POST"]) :
     "${pair[0]}|${pair[1]}" => { api = pair[0], method = pair[1] }

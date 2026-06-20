@@ -8,9 +8,6 @@ locals {
   }
 }
 
-# Private DNS zones — created + linked by default, or skipped entirely when
-# var.existing_private_dns_zone_ids is supplied (hub-managed DNS). The effective
-# IDs are resolved in locals.private_dns_zone_ids.
 resource "azurerm_private_dns_zone" "zone" {
   for_each            = local.create_dns_zones ? local.private_dns_zones : {}
   name                = each.value

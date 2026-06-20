@@ -1,9 +1,3 @@
-# Foundry backend member + load-balanced pool. The circuit breaker is opt-out and
-# defaults to tripping on 5xx ONLY: with a single-member pool, tripping on 429
-# turns one bursty client's throttling into a gateway-wide 503 for trip_duration.
-# Set circuit_breaker.trip_on_429 = true when running a multi-member pool where
-# failover to another region/deployment actually helps.
-
 resource "azapi_resource" "foundry_member" {
   type      = "Microsoft.ApiManagement/service/backends@2024-06-01-preview"
   name      = "foundry-openai-member"

@@ -1,24 +1,25 @@
 name: terraform-docs
 
-# Read-only check that the README Inputs/Outputs block is current. Fails the PR if
-# `terraform-docs` would change it — run `terraform-docs .` locally and commit to fix.
-# Read-only (no git-push) so it also works on PRs from forks.
 on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify README terraform-docs block is up to date
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Render terraform-docs into README.md and push back to the PR branch
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: .
           config-file: .terraform-docs.yml
           output-file: README.md
           output-method: inject
-          fail-on-diff: "true"
+          git-push: "true"
+          git-commit-message: "docs: terraform-docs auto-update"

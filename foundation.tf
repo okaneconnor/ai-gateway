@@ -1,5 +1,3 @@
-# Resource group: created by default, or a pre-existing one (landing-zone pattern)
-# via var.existing_resource_group_name. Everything else references local.resource_group_*.
 resource "azurerm_resource_group" "rg" {
   for_each = var.existing_resource_group_name == null ? { this = {} } : {}
   name     = local.rg_name
