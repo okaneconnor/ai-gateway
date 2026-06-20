@@ -29,9 +29,32 @@ Licensed under the [MIT License](LICENSE).
 
 ## Usage
 
+As a consumer you write a small root module that **configures the providers** (the
+module only pins `required_providers` — the caller owns provider config) and calls
+`ai_gateway` by `source`:
+
 ```hcl
+# versions.tf
+terraform {
+  required_version = ">= 1.9.0"
+  required_providers {
+    azurerm = { source = "hashicorp/azurerm", version = "~> 4.74" }
+    azuread = { source = "hashicorp/azuread", version = "~> 3.0" }
+    azapi   = { source = "azure/azapi", version = "~> 2.0" }
+  }
+}
+
+# providers.tf
+provider "azurerm" {
+  features {}
+  subscription_id = var.subscription_id
+}
+provider "azuread" {}
+provider "azapi" {}
+
+# main.tf
 module "ai_gateway" {
-  source = "github.com/okaneconnor/ai-gateway"
+  source = "github.com/okaneconnor/ai-gateway" # pin to a release for production: ?ref=v1.0.0
 
   location        = "uksouth"
   publisher_name  = "AI Platform Team"
@@ -39,19 +62,19 @@ module "ai_gateway" {
 }
 ```
 
-That's the whole minimal config. Every other knob (custom tiers, models, cache
-tuning, BYO networking / Entra app, …) is an optional variable — see the
-[Inputs](#inputs) reference below and the [usage guide](docs/usage.md).
-
 ```bash
 terraform init
 terraform apply -var subscription_id=<sub-id>   # APIM VNet provisioning takes ~30-45 min
 ```
 
-> Providers are configured by the **caller** — the module itself only pins
-> `required_providers`: azurerm ~> 4.74, azuread ~> 3.0, azapi ~> 2.0, random ~> 3.6.
-> Terraform >= 1.9. You need Entra permissions to create app registrations (or use
-> `existing_gateway_app`).
+Those three inputs are the **only required ones** — every other knob is optional with a
+sensible default (see [Inputs](#inputs)), so this deploys the full secure stack. Once it
+is up, a client requests an Entra token (client-credentials, app-role gated) and calls
+the gateway. For getting a token, onboarding a team, and the end-to-end tests, see the
+**[usage guide](docs/usage.md)**.
+
+> You need Entra permissions to create app registrations (or set `existing_gateway_app`
+> to bring your own). Terraform >= 1.9.
 
 ### Complete example
 
