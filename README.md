@@ -172,10 +172,10 @@ module "ai_gateway" {
 
 | Name | Version |
 | ---- | ------- |
-| azapi | 2.10.0 |
-| azuread | 3.8.0 |
-| azurerm | 4.77.0 |
-| random | 3.9.0 |
+| azapi | ~> 2.0 |
+| azuread | ~> 3.0 |
+| azurerm | ~> 4.74 |
+| random | ~> 3.6 |
 
 ## Modules
 
