@@ -12,6 +12,7 @@ resource "azurerm_virtual_network" "main" {
 }
 
 resource "azurerm_subnet" "apim" {
+  #checkov:skip=CKV2_AZURE_31:NSG is attached via azurerm_subnet_network_security_group_association.apim; checkov's graph does not link the for_each-keyed association back to the subnet (false positive).
   for_each             = local.create_network ? { this = {} } : {}
   name                 = "snet-apim"
   resource_group_name  = local.resource_group_name
