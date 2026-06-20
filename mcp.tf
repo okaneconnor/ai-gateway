@@ -5,7 +5,7 @@
 # (APIs -> MCP servers -> Create MCP server). Once functional, the API Center
 # apiSource integration catalogues it automatically.
 resource "azapi_resource" "existing_mcp" {
-  count     = var.enable_mcp ? 1 : 0
+  for_each  = var.enable_mcp ? { this = {} } : {}
   type      = "Microsoft.ApiManagement/service/apis@2025-09-01-preview"
   name      = "governed-mcp"
   parent_id = azurerm_api_management.apim.id
@@ -25,8 +25,8 @@ resource "azapi_resource" "existing_mcp" {
 }
 
 resource "azurerm_api_management_api_policy" "mcp" {
-  count               = var.enable_mcp ? 1 : 0
-  api_name            = azapi_resource.existing_mcp[0].name
+  for_each            = var.enable_mcp ? { this = {} } : {}
+  api_name            = azapi_resource.existing_mcp["this"].name
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = local.resource_group_name
   xml_content         = <<-XML

@@ -43,7 +43,7 @@ resource "azurerm_cognitive_deployment" "model" {
 # Embeddings backend used by llm-semantic-cache-lookup to vectorise prompts.
 resource "azurerm_api_management_backend" "embeddings" {
   #checkov:skip=CKV_AZURE_215:"protocol" is the APIM backend type (http|soap), not the wire scheme — the url is the private HTTPS Foundry endpoint reached over TLS.
-  count               = var.semantic_cache.enabled ? 1 : 0
+  for_each            = var.semantic_cache.enabled ? { this = {} } : {}
   name                = "embeddings-backend"
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = local.resource_group_name

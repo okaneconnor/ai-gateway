@@ -2,7 +2,7 @@
 # llm-semantic-cache policies). Entirely skipped when semantic_cache.enabled = false.
 
 resource "azurerm_managed_redis" "cache" {
-  count               = var.semantic_cache.enabled ? 1 : 0
+  for_each            = var.semantic_cache.enabled ? { this = {} } : {}
   name                = local.redis_name
   location            = local.resource_group_location
   resource_group_name = local.resource_group_name
@@ -28,7 +28,7 @@ resource "azurerm_managed_redis" "cache" {
 }
 
 resource "azurerm_api_management_redis_cache" "cache" {
-  count             = var.semantic_cache.enabled ? 1 : 0
+  for_each          = var.semantic_cache.enabled ? { this = {} } : {}
   name              = "${var.name_prefix}-semantic-cache"
   api_management_id = azurerm_api_management.apim.id
   description       = "Semantic cache for LLM responses (RediSearch)."
@@ -41,9 +41,9 @@ resource "azurerm_api_management_redis_cache" "cache" {
   cache_location = data.azurerm_location.current.display_name
   connection_string = format(
     "%s:%d,password=%s,ssl=True,abortConnect=False",
-    azurerm_managed_redis.cache[0].hostname,
-    azurerm_managed_redis.cache[0].default_database[0].port,
-    azurerm_managed_redis.cache[0].default_database[0].primary_access_key,
+    azurerm_managed_redis.cache["this"].hostname,
+    azurerm_managed_redis.cache["this"].default_database[0].port,
+    azurerm_managed_redis.cache["this"].default_database[0].primary_access_key,
   )
 
   depends_on = [azurerm_private_endpoint.pe]

@@ -33,7 +33,7 @@ resource "azurerm_api_management_policy_fragment" "backend_mi" {
 }
 
 resource "azurerm_api_management_policy_fragment" "content_safety" {
-  count             = var.content_safety.enabled ? 1 : 0
+  for_each          = var.content_safety.enabled ? { this = {} } : {}
   api_management_id = azurerm_api_management.apim.id
   name              = "ai-content-safety"
   format            = "xml"

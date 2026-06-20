@@ -7,7 +7,7 @@ resource "random_uuid" "role" {
 }
 
 resource "azuread_application" "gateway" {
-  count            = var.existing_gateway_app == null ? 1 : 0
+  for_each         = var.existing_gateway_app == null ? { this = {} } : {}
   display_name     = "${var.name_prefix}-gateway-${local.suffix}"
   identifier_uris  = ["api://${var.name_prefix}-gateway-${local.suffix}"]
   sign_in_audience = "AzureADMyOrg"
@@ -31,8 +31,8 @@ resource "azuread_application" "gateway" {
 }
 
 resource "azuread_service_principal" "gateway" {
-  count     = var.existing_gateway_app == null ? 1 : 0
-  client_id = azuread_application.gateway[0].client_id
+  for_each  = var.existing_gateway_app == null ? { this = {} } : {}
+  client_id = azuread_application.gateway["this"].client_id
   owners    = [data.azuread_client_config.current.object_id]
 }
 
@@ -61,7 +61,7 @@ resource "azuread_application_password" "demo" {
 
 resource "azuread_app_role_assignment" "demo" {
   for_each            = var.create_demo_clients ? var.tiers : {}
-  app_role_id         = azuread_service_principal.gateway[0].app_role_ids[each.value.app_role]
+  app_role_id         = azuread_service_principal.gateway["this"].app_role_ids[each.value.app_role]
   principal_object_id = azuread_service_principal.demo[each.key].object_id
-  resource_object_id  = azuread_service_principal.gateway[0].object_id
+  resource_object_id  = azuread_service_principal.gateway["this"].object_id
 }

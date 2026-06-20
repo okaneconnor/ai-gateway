@@ -1,9 +1,9 @@
 resource "random_string" "suffix" {
-  count   = var.name_suffix == null ? 1 : 0
-  length  = 5
-  special = false
-  upper   = false
-  numeric = true
+  for_each = var.name_suffix == null ? { this = {} } : {}
+  length   = 5
+  special  = false
+  upper    = false
+  numeric  = true
 }
 
 # Display-name form of var.location ("uksouth" -> "UK South"). APIM reports its
@@ -14,7 +14,7 @@ data "azurerm_location" "current" {
 }
 
 locals {
-  suffix = var.name_suffix != null ? var.name_suffix : one(random_string.suffix[*].result)
+  suffix = var.name_suffix != null ? var.name_suffix : one(values(random_string.suffix)[*].result)
 
   # CAF-style region shortcode for the resource-group name; falls back to the
   # raw region string for regions not in the map.
@@ -57,15 +57,15 @@ locals {
   tenant_id = data.azurerm_client_config.current.tenant_id
 
   # ── Effective resource-group / location (module-created vs bring-your-own) ──
-  resource_group_name     = var.existing_resource_group_name != null ? var.existing_resource_group_name : azurerm_resource_group.rg[0].name
-  resource_group_id       = var.existing_resource_group_name != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.rg[0].id
-  resource_group_location = var.existing_resource_group_name != null ? data.azurerm_resource_group.existing[0].location : azurerm_resource_group.rg[0].location
+  resource_group_name     = var.existing_resource_group_name != null ? var.existing_resource_group_name : azurerm_resource_group.rg["this"].name
+  resource_group_id       = var.existing_resource_group_name != null ? data.azurerm_resource_group.existing["this"].id : azurerm_resource_group.rg["this"].id
+  resource_group_location = var.existing_resource_group_name != null ? data.azurerm_resource_group.existing["this"].location : azurerm_resource_group.rg["this"].location
 
   # ── Effective network (module-created vs bring-your-own) ──
   create_network = var.existing_network == null
-  vnet_id        = var.existing_network != null ? var.existing_network.vnet_id : azurerm_virtual_network.main[0].id
-  apim_subnet_id = var.existing_network != null ? var.existing_network.apim_subnet_id : azurerm_subnet.apim[0].id
-  pe_subnet_id   = var.existing_network != null ? var.existing_network.pe_subnet_id : azurerm_subnet.pe[0].id
+  vnet_id        = var.existing_network != null ? var.existing_network.vnet_id : azurerm_virtual_network.main["this"].id
+  apim_subnet_id = var.existing_network != null ? var.existing_network.apim_subnet_id : azurerm_subnet.apim["this"].id
+  pe_subnet_id   = var.existing_network != null ? var.existing_network.pe_subnet_id : azurerm_subnet.pe["this"].id
 
   # ── Effective private DNS zones (module-created vs bring-your-own) ──
   create_dns_zones = length(var.existing_private_dns_zone_ids) == 0
@@ -75,13 +75,13 @@ locals {
 
   # ── Effective observability (module-created vs bring-your-own) ──
   create_law                     = var.existing_log_analytics_workspace_id == null
-  log_analytics_workspace_id     = var.existing_log_analytics_workspace_id != null ? var.existing_log_analytics_workspace_id : azurerm_log_analytics_workspace.law[0].id
+  log_analytics_workspace_id     = var.existing_log_analytics_workspace_id != null ? var.existing_log_analytics_workspace_id : azurerm_log_analytics_workspace.law["this"].id
   create_app_insights            = var.existing_application_insights == null
-  app_insights_id                = var.existing_application_insights != null ? var.existing_application_insights.id : azurerm_application_insights.ai[0].id
-  app_insights_connection_string = var.existing_application_insights != null ? var.existing_application_insights.connection_string : azurerm_application_insights.ai[0].connection_string
+  app_insights_id                = var.existing_application_insights != null ? var.existing_application_insights.id : azurerm_application_insights.ai["this"].id
+  app_insights_connection_string = var.existing_application_insights != null ? var.existing_application_insights.connection_string : azurerm_application_insights.ai["this"].connection_string
 
   # Gateway app identity — module-created unless the consumer brings their own.
-  gateway_client_id = var.existing_gateway_app != null ? var.existing_gateway_app.client_id : azuread_application.gateway[0].client_id
+  gateway_client_id = var.existing_gateway_app != null ? var.existing_gateway_app.client_id : azuread_application.gateway["this"].client_id
 
   # Tiers ordered by tokens_per_minute DESC. Policy <choose> branches evaluate in
   # order, so a client holding several roles lands on its highest tier.

@@ -7,7 +7,7 @@
 # assignment is RG-scoped).
 
 resource "azurerm_policy_definition" "allowed_deployment_skus" {
-  count        = var.deployment_sku_policy.enabled ? 1 : 0
+  for_each     = var.deployment_sku_policy.enabled ? { this = {} } : {}
   name         = "${var.name_prefix}-allowed-cogsvc-skus-${local.suffix}"
   policy_type  = "Custom"
   mode         = "All"
@@ -27,9 +27,9 @@ resource "azurerm_policy_definition" "allowed_deployment_skus" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "allowed_deployment_skus" {
-  count                = var.deployment_sku_policy.enabled ? 1 : 0
+  for_each             = var.deployment_sku_policy.enabled ? { this = {} } : {}
   name                 = "allowed-deployment-skus"
   resource_group_id    = local.resource_group_id
-  policy_definition_id = azurerm_policy_definition.allowed_deployment_skus[0].id
+  policy_definition_id = azurerm_policy_definition.allowed_deployment_skus["this"].id
   description          = "Data residency guardrail: model-deployment SKUs limited to ${join(", ", var.deployment_sku_policy.allowed_sku_names)}."
 }

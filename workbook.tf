@@ -1,13 +1,13 @@
 resource "random_uuid" "workbook" {
-  count = var.enable_workbook ? 1 : 0
+  for_each = var.enable_workbook ? { this = {} } : {}
 }
 
 # Operational dashboard over the App Insights telemetry the gateway emits:
 # llm-emit-token-metric lands in customMetrics (namespace llm-metrics) with the
 # App ID dimension set from the validated caller identity.
 resource "azurerm_application_insights_workbook" "apim" {
-  count               = var.enable_workbook ? 1 : 0
-  name                = random_uuid.workbook[0].result
+  for_each            = var.enable_workbook ? { this = {} } : {}
+  name                = random_uuid.workbook["this"].result
   resource_group_name = local.resource_group_name
   location            = local.resource_group_location
   display_name        = "AI Gateway — APIM telemetry"

@@ -54,7 +54,7 @@ run "defaults" {
   command = plan
 
   assert {
-    condition     = azurerm_resource_group.rg[0].name == "aigw-uks-rg"
+    condition     = azurerm_resource_group.rg["this"].name == "aigw-uks-rg"
     error_message = "RG name should derive the region shortcode from var.location."
   }
 
@@ -97,7 +97,7 @@ run "defaults" {
 
   # Residency guardrail is an allowlist (fails closed for future non-regional SKUs).
   assert {
-    condition     = strcontains(azurerm_policy_definition.allowed_deployment_skus[0].policy_rule, "notIn")
+    condition     = strcontains(azurerm_policy_definition.allowed_deployment_skus["this"].policy_rule, "notIn")
     error_message = "Deployment-SKU policy must be an allowlist (notIn), not a denylist."
   }
 
@@ -488,7 +488,7 @@ run "key_vault_premium_sku" {
   }
 
   assert {
-    condition     = azurerm_key_vault.main[0].sku_name == "premium"
+    condition     = azurerm_key_vault.main["this"].sku_name == "premium"
     error_message = "key_vault.sku_name must flow to the vault (premium = HSM-backed)."
   }
 }

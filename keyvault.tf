@@ -6,7 +6,7 @@ resource "azurerm_key_vault" "main" {
   #checkov:skip=CKV_AZURE_110:purge protection is enabled by default via var.key_vault.purge_protection_enabled (checkov cannot resolve the object optional() default).
   #checkov:skip=CKV_AZURE_42:soft-delete (90d) + purge protection are on by default via var.key_vault (checkov cannot resolve the object optional() default).
   #checkov:skip=CKV2_AZURE_32:Reached via a private endpoint (azurerm_private_endpoint.pe["kv"], subresource "vault"); checkov's graph does not link the for_each PE resource to the vault.
-  count                         = var.key_vault.enabled ? 1 : 0
+  for_each                      = var.key_vault.enabled ? { this = {} } : {}
   name                          = local.kv_name
   location                      = local.resource_group_location
   resource_group_name           = local.resource_group_name
@@ -25,8 +25,8 @@ resource "azurerm_key_vault" "main" {
 }
 
 resource "azurerm_role_assignment" "apim_kv_secrets" {
-  count                = var.key_vault.enabled ? 1 : 0
-  scope                = azurerm_key_vault.main[0].id
+  for_each             = var.key_vault.enabled ? { this = {} } : {}
+  scope                = azurerm_key_vault.main["this"].id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_api_management.apim.identity[0].principal_id
   principal_type       = "ServicePrincipal"

@@ -106,7 +106,7 @@ output "log_analytics_workspace_resource_id" {
 
 output "log_analytics_workspace_guid" {
   description = "Log Analytics customer/workspace GUID for KQL queries (ApiManagementGatewayLogs / ApiManagementGatewayLlmLog). Null when bringing your own workspace."
-  value       = local.create_law ? azurerm_log_analytics_workspace.law[0].workspace_id : null
+  value       = local.create_law ? azurerm_log_analytics_workspace.law["this"].workspace_id : null
 }
 
 output "application_insights_id" {
@@ -124,20 +124,20 @@ output "application_insights_connection_string" {
 
 output "key_vault_id" {
   description = "Key Vault resource ID (null when key_vault.enabled = false)."
-  value       = var.key_vault.enabled ? azurerm_key_vault.main[0].id : null
+  value       = var.key_vault.enabled ? azurerm_key_vault.main["this"].id : null
 }
 
 output "key_vault_uri" {
   description = "Key Vault URI for consumer workloads (null when key_vault.enabled = false)."
-  value       = var.key_vault.enabled ? azurerm_key_vault.main[0].vault_uri : null
+  value       = var.key_vault.enabled ? azurerm_key_vault.main["this"].vault_uri : null
 }
 
 output "api_center_id" {
   description = "API Center service resource ID (null when enable_api_center = false)."
-  value       = var.enable_api_center ? azapi_resource.api_center[0].id : null
+  value       = var.enable_api_center ? azapi_resource.api_center["this"].id : null
 }
 
 output "api_center_name" {
   description = "API Center service name (null when enable_api_center = false)."
-  value       = var.enable_api_center ? azapi_resource.api_center[0].name : null
+  value       = var.enable_api_center ? azapi_resource.api_center["this"].name : null
 }

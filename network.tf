@@ -3,7 +3,7 @@
 # NSG — see README for the required APIM inbound/outbound rules.
 
 resource "azurerm_virtual_network" "main" {
-  count               = local.create_network ? 1 : 0
+  for_each            = local.create_network ? { this = {} } : {}
   name                = "${var.name_prefix}-vnet-${local.suffix}"
   location            = local.resource_group_location
   resource_group_name = local.resource_group_name
@@ -12,24 +12,24 @@ resource "azurerm_virtual_network" "main" {
 }
 
 resource "azurerm_subnet" "apim" {
-  count                = local.create_network ? 1 : 0
+  for_each             = local.create_network ? { this = {} } : {}
   name                 = "snet-apim"
   resource_group_name  = local.resource_group_name
-  virtual_network_name = azurerm_virtual_network.main[0].name
+  virtual_network_name = azurerm_virtual_network.main["this"].name
   address_prefixes     = [var.network.apim_subnet_cidr]
 }
 
 resource "azurerm_subnet" "pe" {
   #checkov:skip=CKV2_AZURE_31:Private-endpoint subnet — private endpoints bypass subnet NSGs (network policies disabled), so an NSG here has no effect. The APIM subnet carries the NSG; all backends have public access disabled.
-  count                = local.create_network ? 1 : 0
+  for_each             = local.create_network ? { this = {} } : {}
   name                 = "snet-private-endpoints"
   resource_group_name  = local.resource_group_name
-  virtual_network_name = azurerm_virtual_network.main[0].name
+  virtual_network_name = azurerm_virtual_network.main["this"].name
   address_prefixes     = [var.network.pe_subnet_cidr]
 }
 
 resource "azurerm_network_security_group" "apim" {
-  count               = local.create_network ? 1 : 0
+  for_each            = local.create_network ? { this = {} } : {}
   name                = "nsg-apim-${local.suffix}"
   location            = local.resource_group_location
   resource_group_name = local.resource_group_name
@@ -115,7 +115,7 @@ resource "azurerm_network_security_group" "apim" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "apim" {
-  count                     = local.create_network ? 1 : 0
-  subnet_id                 = azurerm_subnet.apim[0].id
-  network_security_group_id = azurerm_network_security_group.apim[0].id
+  for_each                  = local.create_network ? { this = {} } : {}
+  subnet_id                 = azurerm_subnet.apim["this"].id
+  network_security_group_id = azurerm_network_security_group.apim["this"].id
 }

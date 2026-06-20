@@ -23,14 +23,14 @@ locals {
     },
     var.key_vault.enabled ? {
       kv = {
-        resource_id = azurerm_key_vault.main[0].id
+        resource_id = azurerm_key_vault.main["this"].id
         subresource = "vault"
         dns_zones   = ["keyvault"]
       }
     } : {},
     var.semantic_cache.enabled ? {
       redis = {
-        resource_id = azurerm_managed_redis.cache[0].id
+        resource_id = azurerm_managed_redis.cache["this"].id
         subresource = "redisEnterprise"
         dns_zones   = ["redis"]
       }

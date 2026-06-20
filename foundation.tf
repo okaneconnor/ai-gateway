@@ -1,21 +1,21 @@
 # Resource group: created by default, or a pre-existing one (landing-zone pattern)
 # via var.existing_resource_group_name. Everything else references local.resource_group_*.
 resource "azurerm_resource_group" "rg" {
-  count    = var.existing_resource_group_name == null ? 1 : 0
+  for_each = var.existing_resource_group_name == null ? { this = {} } : {}
   name     = local.rg_name
   location = var.location
   tags     = var.tags
 }
 
 data "azurerm_resource_group" "existing" {
-  count = var.existing_resource_group_name != null ? 1 : 0
-  name  = var.existing_resource_group_name
+  for_each = var.existing_resource_group_name != null ? { this = {} } : {}
+  name     = var.existing_resource_group_name
 }
 
 # Log Analytics — created by default, or bring-your-own via
 # var.existing_log_analytics_workspace_id (central-logging pattern).
 resource "azurerm_log_analytics_workspace" "law" {
-  count               = local.create_law ? 1 : 0
+  for_each            = local.create_law ? { this = {} } : {}
   name                = local.law_name
   location            = local.resource_group_location
   resource_group_name = local.resource_group_name
@@ -27,7 +27,7 @@ resource "azurerm_log_analytics_workspace" "law" {
 # Application Insights — created by default, or bring-your-own via
 # var.existing_application_insights.
 resource "azurerm_application_insights" "ai" {
-  count               = local.create_app_insights ? 1 : 0
+  for_each            = local.create_app_insights ? { this = {} } : {}
   name                = local.ai_name
   location            = local.resource_group_location
   resource_group_name = local.resource_group_name
