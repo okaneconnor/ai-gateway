@@ -1,11 +1,3 @@
-# Guardrail: deny model-deployment SKUs outside the allowlist. Implemented as an
-# ALLOWLIST (notIn) deliberately — Azure keeps adding non-regional SKUs
-# (GlobalStandard, GlobalBatch, GlobalProvisionedManaged, DataZone*, ...) that
-# process data outside the deployment region; a denylist silently fails open as
-# new ones appear. The definition name is suffixed so multiple gateway instances
-# in one subscription don't collide (definitions are subscription-scoped; the
-# assignment is RG-scoped).
-
 resource "azurerm_policy_definition" "allowed_deployment_skus" {
   for_each     = var.deployment_sku_policy.enabled ? { this = {} } : {}
   name         = "${var.name_prefix}-allowed-cogsvc-skus-${local.suffix}"

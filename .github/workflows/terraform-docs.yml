@@ -1,10 +1,5 @@
 name: terraform-docs
 
-# Keeps the README Inputs/Outputs block in sync with the variables/outputs using the
-# official terraform-docs action (no runtime install, no version to match locally).
-# It regenerates the block and commits the fix back to the PR branch, so the action is
-# the single source of truth. Note: git-push can't write to forked PR branches — fine
-# for same-repo PRs; switch to fail-on-diff if you start taking external contributions.
 on:
   pull_request:
 

@@ -6,9 +6,6 @@ resource "random_string" "suffix" {
   numeric  = true
 }
 
-# Display-name form of var.location ("uksouth" -> "UK South"). APIM reports its
-# gateway region as the display name, and the external-cache binding must match
-# it exactly (see redis.tf).
 data "azurerm_location" "current" {
   location = var.location
 }
@@ -16,8 +13,6 @@ data "azurerm_location" "current" {
 locals {
   suffix = var.name_suffix != null ? var.name_suffix : one(values(random_string.suffix)[*].result)
 
-  # CAF-style region shortcode for the resource-group name; falls back to the
-  # raw region string for regions not in the map.
   region_short_map = {
     uksouth            = "uks"
     ukwest             = "ukw"
@@ -95,9 +90,6 @@ locals {
   content_safety_keys        = [for k, v in var.ai_services : k if v.kind == "ContentSafety"]
   content_safety_backend_key = length(local.content_safety_keys) > 0 ? local.content_safety_keys[0] : null
 
-  # APIs that should emit per-request LLM token logs (ApiManagementGatewayLlmLog).
-  # Any future LLM-shaped API added to the gateway belongs in this map so it gets
-  # the largeLanguageModel diagnostic automatically.
   llm_apis = {
     foundry = azurerm_api_management_api.foundry.id
   }

@@ -1,10 +1,3 @@
-# All private endpoints, driven by one map so subnet/zone/naming changes happen in
-# one place. dns_zones entries are keys of local.private_dns_zones (dns.tf) — they
-# differ per service on purpose (e.g. the Foundry AIServices account also exposes a
-# *.openai.azure.com endpoint, so it needs the openai zone; plain accounts don't).
-# The effective zone IDs (module-created or bring-your-own) come from
-# local.private_dns_zone_ids.
-
 locals {
   private_endpoints = merge(
     {
